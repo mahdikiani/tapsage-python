@@ -11,7 +11,7 @@ class TestTapSageBot(unittest.TestCase):
         api_key = os.getenv("TAPSAGE_API_KEY")
         bot_id = os.getenv("TAPSAGE_BOT_ID")
         self.tapbot = TapSageBot(api_key, bot_id)
-        self.prompt = "Sugegst me a list of 5 gifts for a 30 years boy who is tech-fan."
+        self.prompt = "Suggest me a list of 5 gifts for a 30 years boy who is tech-fan."
 
     def test_message(self):
         print()
