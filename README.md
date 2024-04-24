@@ -26,7 +26,7 @@ Here’s a quick example of how to use the client to interact with Tapsage:
 import tapsage
 
 # Initialize the client
-tapbot = tapsage.TapSageBot(api_key='your_api_key_here')
+tapbot = tapsage.TapSageBot(api_key=TAPSAGE_API_KEY, bot_id=TAPSAGE_BOT_ID)
 
 # Initialize a session
 session = tapbot.create_session()
@@ -46,7 +46,7 @@ Here’s an example of async operation:
 import tapsage
 
 # Initialize the client
-tapbot = tapsage.TapSageBot(api_key='your_api_key_here')
+tapbot = tapsage.TapSageBot(api_key=TAPSAGE_API_KEY, bot_id=TAPSAGE_BOT_ID)
 
 prompt = "Suggest me a list of 5 gifts for a 30 years boy who is tech-fan."
 session = tapbot.create_session()
@@ -69,7 +69,7 @@ Here’s an example of stream usage:
 import tapsage
 
 # Initialize the client
-tapbot = tapsage.TapSageBot(api_key='your_api_key_here')
+tapbot = tapsage.TapSageBot(api_key=TAPSAGE_API_KEY, bot_id=TAPSAGE_BOT_ID)
 
 prompt = "Suggest me a list of 5 gifts for a 30 years boy who is tech-fan."
 stream = tapbot.stream_messages(
@@ -85,7 +85,7 @@ tapbot.delete_session(session)
 Before using the client, ensure you configure it with your API key:
 
 ```python
-client = TapsageClient(api_key='your_api_key_here')
+tapbot = tapsage.TapSageBot(api_key=TAPSAGE_API_KEY, bot_id=TAPSAGE_BOT_ID)
 ```
 
 ## Documentation
