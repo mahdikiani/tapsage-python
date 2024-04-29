@@ -2,7 +2,7 @@ import json
 import uuid
 
 import requests
-from .taptypes import (
+from tapsage.taptypes import (
     Message,
     MessageContent,
     MessageRequest,
