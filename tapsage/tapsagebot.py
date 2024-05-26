@@ -150,3 +150,9 @@ class TapSageBot:
                                 )
                             )
                             buffer = ""
+        
+        yield MessageStream(
+            message=MessageContent(
+                type="AI", content=buffer, attachments=None
+            )
+        )
