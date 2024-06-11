@@ -35,12 +35,7 @@ class AsyncTapSageBot:
             "X-Api-Key": self.api_key,
         }
         self.bot_id = bot_id
-        self._session = None
 
-    async def get_session(self):
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
-        return self._session
 
     async def _request(self, method: str, endpoint: str, **kwargs):
         url = self.endpoints.get(endpoint).format(
