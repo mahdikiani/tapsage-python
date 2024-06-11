@@ -2,6 +2,7 @@ import json
 import uuid
 
 import requests
+
 from tapsage.taptypes import (
     Message,
     MessageContent,
@@ -40,7 +41,7 @@ class TapSageBot:
             user_id = str(uuid.uuid4())
 
         session_request = SessionRequest(
-            botId=self.bot_id, user=SessionUser(id=user_id, name="Mahdi")
+            botId=self.bot_id, user=SessionUser(id=user_id, name="_")
         )
 
         response = requests.post(
@@ -76,7 +77,9 @@ class TapSageBot:
                 content=prompt,
             )
         )
-        response = requests.post(url, headers=self.headers, json=data.model_dump())
+        response = requests.post(
+            url, headers=self.headers, json=data.model_dump()
+        )
         response.raise_for_status()
         return Message(**response.json())
 
@@ -88,7 +91,9 @@ class TapSageBot:
                 content=prompt,
             )
         )
-        response = requests.post(url, headers=self.headers, json=data.model_dump())
+        response = requests.post(
+            url, headers=self.headers, json=data.model_dump()
+        )
         response.raise_for_status()
         return Task(**response.json())
 
@@ -150,9 +155,7 @@ class TapSageBot:
                                 )
                             )
                             buffer = ""
-        
+
         yield MessageStream(
-            message=MessageContent(
-                type="AI", content=buffer, attachments=None
-            )
+            message=MessageContent(type="AI", content=buffer, attachments=None)
         )

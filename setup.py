@@ -9,7 +9,9 @@ def get_version(package):
     Return package version as listed in `__version__` in `init.py`.
     """
     with open(os.path.join(package, "__init__.py")) as f:
-        return re.search("__version__ = ['\"]([^'\"]+)['\"]", f.read()).group(1)
+        return re.search("__version__ = ['\"]([^'\"]+)['\"]", f.read()).group(
+            1
+        )
 
 
 def get_long_description():
@@ -23,7 +25,7 @@ def get_long_description():
 setup(
     name="tapsage_client",
     version=get_version("tapsage"),
-    python_requires=">=3",
+    python_requires=">=3.7",
     url="https://github.com/mahdikiani/tapsage-python",
     license="Apache-2.0",
     description="A Python client for Tapsage to streamline API interactions, enabling easy management and customization of AI-driven chatbots and image models.",
