@@ -127,7 +127,7 @@ class SessionUser(BaseModel):
 
 
 class SessionRequest(BaseModel):
-    botId: str
+    botId: str | None = None
     user: SessionUser | None = None
     initialMessages: list[MessageContent] = []
 
