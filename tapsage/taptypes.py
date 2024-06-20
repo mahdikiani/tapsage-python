@@ -134,13 +134,13 @@ class SessionRequest(BaseModel):
 
 class Session(BaseModel):
     id: str
-    externalId: str
-    bot: BotInfo
-    userId: str
-    externalUser: ExternalUser
+    externalId: str | None = None
+    bot: BotInfo | None = None
+    userId: str | None = None
+    externalUser: ExternalUser | None = None
     messages: list[Message]
     startDate: datetime
-    lastUpdateDate: datetime
-    dialogueLength: int
+    lastUpdateDate: datetime | None = None
+    dialogueLength: int | None = None
     deletedAt: datetime | None = None
-    isIdle: bool
+    isIdle: bool | None = None
