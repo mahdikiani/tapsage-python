@@ -140,6 +140,14 @@ class AsyncTapSageBot:
                 url, headers=self.headers, json=data.model_dump()
             ) as response:
                 response.raise_for_status()
+
+                if split_criteria.get("words"):
+                    split_criteria["splitter"] = " "
+                elif split_criteria.get("sentence"):
+                    split_criteria["splitter"] = ".?!:"
+                elif split_criteria.get("line"):
+                    split_criteria["splitter"] = "\n"
+
                 buffer = ""
 
                 async for line in response.content:
