@@ -1,5 +1,4 @@
 import aiohttp
-
 from tapsage.taptypes import Bot, BotRequest
 
 
@@ -24,9 +23,7 @@ class AsyncTapSageUser:
         return self._session
 
     async def _request(self, method: str, endpoint: str, **kwargs):
-        url = self.endpoints.get(endpoint).format(
-            **kwargs.get("url_params", {})
-        )
+        url = self.endpoints.get(endpoint).format(**kwargs.get("url_params", {}))
         async with aiohttp.ClientSession() as session:
             async with session.request(
                 method, url, headers=self.headers, **kwargs
