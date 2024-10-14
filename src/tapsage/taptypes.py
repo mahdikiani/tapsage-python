@@ -104,7 +104,7 @@ class Message(BaseModel):
     content: str
     attachments: list[Attachment] | None = None
     timestamp: datetime
-    finishReason: Literal["STOP"]
+    finishReason: Literal["STOP", "LENGTH", "CONTENT_FILTER"] | None
 
 
 class MessageStream(BaseModel):
@@ -116,9 +116,9 @@ class Task(BaseModel):
 
 
 class TaskResult(BaseModel):
-    status: Literal["RUNNING", "FINISHED"]
+    status: Literal["RUNNING", "FINISHED", "FAILED"]
     message: Message | None = None
-    percentage: str | None = None
+    percentage: int | None = None
 
 
 class SessionUser(BaseModel):

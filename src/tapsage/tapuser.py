@@ -1,5 +1,5 @@
 import requests
-from tapsage.taptypes import Bot, BotRequest
+from .taptypes import Bot, BotRequest
 
 
 class TapSageUser:

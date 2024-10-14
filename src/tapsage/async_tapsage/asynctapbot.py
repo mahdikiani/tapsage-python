@@ -74,13 +74,22 @@ class AsyncTapSageBot:
         return Session(**response_data)
 
     async def delete_session(self, session: Session) -> None:
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
         await self._request(
             method="DELETE",
             endpoint="get_session",
-            url_params={"session_id": session.id},
+            url_params={"session_id": session_id},
         )
 
     async def send_message(self, session: Session, prompt: str) -> Message:
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
+
         data = MessageRequest(
             message=MessageContent(
                 type="USER",
@@ -90,12 +99,17 @@ class AsyncTapSageBot:
         response_data = await self._request(
             method="POST",
             endpoint="message",
-            url_params={"session_id": session.id},
+            url_params={"session_id": session_id},
             json=data.model_dump(),
         )
         return Message(**response_data)
 
     async def send_message_async(self, session: Session, prompt: str) -> Task:
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
+
         data = MessageRequest(
             message=MessageContent(
                 type="USER",
@@ -105,23 +119,38 @@ class AsyncTapSageBot:
         response_data = await self._request(
             method="POST",
             endpoint="async_task",
-            url_params={"session_id": session.id},
+            url_params={"session_id": session_id},
             json=data.model_dump(),
         )
         return Task(**response_data)
 
     async def retrieve_async_task(self, session: Session, task: Task) -> TaskResult:
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
+
+        if isinstance(task, (str, uuid.UUID)):
+            task_id = task
+        else:
+            task_id = task.taskId
+
         response_data = await self._request(
             method="GET",
             endpoint="get_async_task",
-            url_params={"session_id": session.id, "task_id": task.taskId},
+            url_params={"session_id": session_id, "task_id": task_id},
         )
         return TaskResult(**response_data)
 
     async def stream_messages(
         self, session: Session, prompt: str, split_criteria: dict = None
     ):
-        url = self.endpoints.get("stream").format(session_id=session.id)
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
+
+        url = self.endpoints.get("stream").format(session_id=session_id)
         data = MessageRequest(
             message=MessageContent(
                 type="USER",
@@ -134,14 +163,6 @@ class AsyncTapSageBot:
                 url, headers=self.headers, json=data.model_dump()
             ) as response:
                 response.raise_for_status()
-
-                if split_criteria.get("words"):
-                    split_criteria["splitter"] = " "
-                elif split_criteria.get("sentence"):
-                    split_criteria["splitter"] = ".?!:"
-                elif split_criteria.get("line"):
-                    split_criteria["splitter"] = "\n"
-
                 buffer = ""
 
                 async for line in response.content:
