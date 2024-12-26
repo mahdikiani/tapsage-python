@@ -1,5 +1,6 @@
-import aiohttp
-from tapsage.taptypes import Bot, BotRequest
+import httpx
+
+from ..taptypes import Bot, BotRequest
 
 
 class AsyncTapSageUser:
@@ -19,17 +20,17 @@ class AsyncTapSageUser:
 
     async def get_session(self):
         if self._session is None:
-            self._session = aiohttp.ClientSession()
+            self._session = httpx.AsyncClient()
         return self._session
 
     async def _request(self, method: str, endpoint: str, **kwargs):
         url = self.endpoints.get(endpoint).format(**kwargs.get("url_params", {}))
-        async with aiohttp.ClientSession() as session:
-            async with session.request(
+        async with httpx.AsyncClient() as session:
+            response = await session.request(
                 method, url, headers=self.headers, **kwargs
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
+            )
+            response.raise_for_status()
+            return response.json()
 
     async def create_bot(self, bot_data: BotRequest):
         assert isinstance(bot_data, BotRequest)

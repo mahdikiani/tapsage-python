@@ -101,7 +101,7 @@ class MessageRequest(BaseModel):
 class Message(BaseModel):
     id: str
     type: Literal["USER", "AI"]
-    content: str
+    content: str | None = None
     attachments: list[Attachment] | None = None
     timestamp: datetime
     finishReason: Literal["STOP", "LENGTH", "CONTENT_FILTER"] | None
@@ -134,13 +134,7 @@ class SessionRequest(BaseModel):
 
 class Session(BaseModel):
     id: str
-    externalId: str | None = None
-    bot: BotInfo | None = None
-    userId: str | None = None
-    externalUser: ExternalUser | None = None
+    botId: str
+    user: SessionUser
     messages: list[Message]
     startDate: datetime
-    lastUpdateDate: datetime | None = None
-    dialogueLength: int | None = None
-    deletedAt: datetime | None = None
-    isIdle: bool | None = None

@@ -1,8 +1,11 @@
 import json
+import logging
 import uuid
 
-import aiohttp
-from tapsage.taptypes import (
+import httpx
+
+from ..taptypes import (
+    Attachment,
     Message,
     MessageContent,
     MessageRequest,
@@ -13,6 +16,8 @@ from tapsage.taptypes import (
     Task,
     TaskResult,
 )
+
+logger = logging.getLogger("tapsage")
 
 
 class AsyncTapSageBot:
@@ -37,12 +42,10 @@ class AsyncTapSageBot:
 
     async def _request(self, method: str, endpoint: str, **kwargs):
         url = self.endpoints.get(endpoint).format(**kwargs.pop("url_params", {}))
-        async with aiohttp.ClientSession() as session:
-            async with session.request(
-                method, url, headers=self.headers, **kwargs
-            ) as response:
-                response.raise_for_status()
-                return await response.json()
+        async with httpx.AsyncClient() as client:
+            response = await client.request(method, url, headers=self.headers, **kwargs)
+            response.raise_for_status()
+            return response.json()
 
     async def create_session(self, user_id: str = None) -> Session:
         if user_id is None:
@@ -94,6 +97,35 @@ class AsyncTapSageBot:
             message=MessageContent(
                 type="USER",
                 content=prompt,
+            )
+        )
+        response_data = await self._request(
+            method="POST",
+            endpoint="message",
+            url_params={"session_id": session_id},
+            json=data.model_dump(),
+        )
+        return Message(**response_data)
+
+    async def send_message_with_attachment(
+        self,
+        session: Session,
+        prompt: str,
+        attachment_url: str,
+        attachment_type: str = "IMAGE",
+    ) -> Message:
+        if isinstance(session, (str, uuid.UUID)):
+            session_id = session
+        else:
+            session_id = session.id
+
+        data = MessageRequest(
+            message=MessageContent(
+                type="USER",
+                content=prompt,
+                attachments=[
+                    Attachment(content=attachment_url, contentType=attachment_type)
+                ],
             )
         )
         response_data = await self._request(
@@ -158,49 +190,56 @@ class AsyncTapSageBot:
             )
         )
 
-        async with aiohttp.ClientSession() as _session:
-            async with _session.post(
-                url, headers=self.headers, json=data.model_dump()
+        async with httpx.AsyncClient() as client:
+            async with client.stream(
+                "POST", url, headers=self.headers, json=data.model_dump(), timeout=None
             ) as response:
                 response.raise_for_status()
                 buffer = ""
 
-                async for line in response.content:
-                    if line:
-                        data = line.decode("utf-8").strip("data:").strip()
-                        if not data:
-                            continue
-                        msg = MessageStream(**json.loads(data))
-                        if not split_criteria:
-                            yield msg
-                            continue
+                async for line in response.aiter_lines():
+                    line = line.strip("data:").strip()
+                    if not line:
+                        continue
 
-                        buffer += msg.message.content
-                        if split_criteria.get("min-length") and len(
-                            buffer
-                        ) >= split_criteria.get("min-length"):
-                            yield MessageStream(
-                                message=MessageContent(
-                                    type="AI", content=buffer, attachments=None
-                                )
+                    try:
+                        msg = MessageStream(**json.loads(line))
+                    except (json.JSONDecodeError, ValueError) as e:
+                        logger.error(f"Failed to parse message: {line} - {e}")
+                        continue
+
+                    if not split_criteria:
+                        yield msg
+                        continue
+
+                    buffer += msg.message.content
+                    if split_criteria.get("min-length") and len(
+                        buffer
+                    ) >= split_criteria.get("min-length"):
+                        yield MessageStream(
+                            message=MessageContent(
+                                type="AI", content=buffer, attachments=None
                             )
-                            buffer = ""
+                        )
+                        buffer = ""
 
-                        if split_criteria.get("splitter"):
-                            for splitter in split_criteria.get("splitter"):
-                                if splitter in buffer:
-                                    yield MessageStream(
-                                        message=MessageContent(
-                                            type="AI",
-                                            content=buffer,
-                                            attachments=None,
-                                        )
+                    if split_criteria.get("splitter"):
+                        for splitter in split_criteria.get("splitter"):
+                            if splitter in buffer:
+                                yield MessageStream(
+                                    message=MessageContent(
+                                        type="AI",
+                                        content=buffer,
+                                        attachments=None,
                                     )
-                                    buffer = ""
-
-                yield MessageStream(
-                    message=MessageContent(type="AI", content=buffer, attachments=None)
-                )
+                                )
+                                buffer = ""
+                if buffer:
+                    yield MessageStream(
+                        message=MessageContent(
+                            type="AI", content=buffer, attachments=None
+                        )
+                    )
 
     async def close(self):
         if self._session is not None:

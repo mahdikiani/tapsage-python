@@ -1,4 +1,5 @@
 import requests
+
 from .taptypes import Bot, BotRequest
 
 
