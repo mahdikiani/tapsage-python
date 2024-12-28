@@ -41,16 +41,19 @@ class AsyncTapSageBot:
         self.bot_id = bot_id
 
     async def _request(self, method: str, endpoint: str, **kwargs):
+        timeout = kwargs.pop("timeout", None)
         url = self.endpoints.get(endpoint).format(**kwargs.pop("url_params", {}))
         async with httpx.AsyncClient() as client:
-            response = await client.request(method, url, headers=self.headers, **kwargs)
+            response = await client.request(
+                method, url, headers=self.headers, timeout=timeout, **kwargs
+            )
             response.raise_for_status()
             try:
                 return response.json()
             except json.JSONDecodeError as e:
                 return response.text
 
-    async def create_session(self, user_id: str = None) -> Session:
+    async def create_session(self, user_id: str = None, **kwargs) -> Session:
         if user_id is None:
             user_id = str(uuid.uuid4())
 
@@ -62,24 +65,26 @@ class AsyncTapSageBot:
             method="POST",
             endpoint="session",
             json=session_request.model_dump(),
+            **kwargs,
         )
         return Session(**response_data)
 
-    async def list_sessions(self, user_id: str) -> list[Session]:
+    async def list_sessions(self, user_id: str, **kwargs) -> list[Session]:
         response_data = await self._request(
-            method="GET", endpoint="sessions", url_params={"user_id": user_id}
+            method="GET", endpoint="sessions", url_params={"user_id": user_id}, **kwargs
         )
         return [Session(**data) for data in response_data]
 
-    async def retrieve_session(self, session_id: str) -> Session:
+    async def retrieve_session(self, session_id: str, **kwargs) -> Session:
         response_data = await self._request(
             method="GET",
             endpoint="get_session",
             url_params={"session_id": session_id},
+            **kwargs,
         )
         return Session(**response_data)
 
-    async def delete_session(self, session: Session) -> None:
+    async def delete_session(self, session: Session, **kwargs) -> None:
         if isinstance(session, (str, uuid.UUID)):
             session_id = session
         else:
@@ -88,9 +93,10 @@ class AsyncTapSageBot:
             method="DELETE",
             endpoint="get_session",
             url_params={"session_id": session_id},
+            **kwargs,
         )
 
-    async def send_message(self, session: Session, prompt: str) -> Message:
+    async def send_message(self, session: Session, prompt: str, **kwargs) -> Message:
         if isinstance(session, (str, uuid.UUID)):
             session_id = session
         else:
@@ -107,6 +113,7 @@ class AsyncTapSageBot:
             endpoint="message",
             url_params={"session_id": session_id},
             json=data.model_dump(),
+            **kwargs,
         )
         return Message(**response_data)
 
@@ -116,6 +123,7 @@ class AsyncTapSageBot:
         prompt: str,
         attachment_url: str,
         attachment_type: str = "IMAGE",
+        **kwargs,
     ) -> Message:
         if isinstance(session, (str, uuid.UUID)):
             session_id = session
@@ -136,10 +144,11 @@ class AsyncTapSageBot:
             endpoint="message",
             url_params={"session_id": session_id},
             json=data.model_dump(),
+            **kwargs,
         )
         return Message(**response_data)
 
-    async def send_message_async(self, session: Session, prompt: str) -> Task:
+    async def send_message_async(self, session: Session, prompt: str, **kwargs) -> Task:
         if isinstance(session, (str, uuid.UUID)):
             session_id = session
         else:
@@ -156,6 +165,7 @@ class AsyncTapSageBot:
             endpoint="async_task",
             url_params={"session_id": session_id},
             json=data.model_dump(),
+            **kwargs,
         )
         return Task(**response_data)
 
