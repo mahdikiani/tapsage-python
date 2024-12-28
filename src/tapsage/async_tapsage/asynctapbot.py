@@ -45,7 +45,10 @@ class AsyncTapSageBot:
         async with httpx.AsyncClient() as client:
             response = await client.request(method, url, headers=self.headers, **kwargs)
             response.raise_for_status()
-            return response.json()
+            try:
+                return response.json()
+            except json.JSONDecodeError as e:
+                return response.text
 
     async def create_session(self, user_id: str = None) -> Session:
         if user_id is None:
